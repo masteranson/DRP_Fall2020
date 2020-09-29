@@ -1,0 +1,18 @@
+using HomotopyContinuation
+
+@var x y epsilon
+
+f₁ = 1 + x * y^2 + x^(2) * y + epsilon * y^3
+f₂ = 2 - x*y^2 + 17*x^(2) * y + epsilon * 4x^3
+start_solutions=[[-0.31,-1.079]]
+set = System([f₁,f₂]; variables=[x,y], parameters=[epsilon])
+result = solve(set,start_solutions;start_parameters = [1], target_parameters = [0])
+
+
+# g₁ = 1 + x * y^2 + x^(2)*y + y^3
+# g₂ = 2- x * y^2 + 17*x^(2)*y + 4x^3
+# set = System([g₁,g₂])
+# result= solve(set)
+
+
+real = real_solutions(result)
