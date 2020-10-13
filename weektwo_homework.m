@@ -2,51 +2,82 @@
 t0 = 0; %Initial time
 n = 1000; %steps
 dt  = 1/n; %Timestep
-gamma = 1 + 1i; %Randomly selected Gamma
+h_t = 0.001; %timestep half criterion
 
+%% Target System Setup
+syms f1(x,y) f2(x,y) f(x,y) 
 
-%% System Setup
-syms f1(x) f2(x) h(x,t) p(x,t)
+f1(x,y) = x + y; 
+f2(x,y) = x + y + 1; 
+f(x,y) = f1 + f2; %Target System
 
-f1(x) = x^2 - 1; %Starting System
-f2(x) = x^2 + 1; %Target System
+%% Polynomial Homogenization
+syms z
 
-h(x,t) = f1(x)*t + f2(x)*(1-t)*gamma; %Homotopy
+degree  = polynomialDegree(f);
+f(x,y,z) = (z^degree).*f(x/z,y/z);
 
-initial_solution(t) = solve(h, x); %x(t) solution of h(x,t)
+%% Starting System
+syms fs(x,y)
 
-starting_point = initial_solution(t0);
+%Projective Transformation Euclidean Patch
+syms r(x,y,z)
 
-dhx = diff(h,x); %dh/dx
-dht = diff(h,t); %dh/dt
+r(x,y,z) = (rand + rand*1i)*x +(rand + rand*1i)*y + (rand + rand*1i)*z - 1;
 
-p(x,t) = (dhx)^(-1)*dht; %Predictor
+%fs = gamma*(zn^d1 - z(n-1)^d1;z(n-(n-1))^d1-z(0)^d1)
+fs(x,y,z) = [(x^degree - y^degree); (y^degree- z^degree)];
 
-%follow up
-%j = det(jacobian(h(x,t0),[x,t])); %Corrector 
-j = (det(diff(h,x)))^(-1); %Corrector 
+%% Homotopy
+syms  h(x,y,t) p(x,y,t)
+
+gamma = 1/r;
+h(x,y,z,t) =  gamma*fs(x,y,z)*t + f(x,y,z)*(1-t); %Homotopy
+
+%initial_solution(t) = solve(h,x,y,z); %x(t) solution of h(x,t)
+%starting_point = initial_solution(t0);
+
+dht = diff(h,t);
+j = jacobian(h(x,y,z,t),[x,y,z,t]);
+
+p(x,y,z,t) = j^(-1)*dht; %Predictor
+j = jacobian(h(x,y,z,t0),[x,y,z,t])^(-1)*h(x,y,z,t0); %Corrector
 
 
 %% Predictor Corrector Loop
+%TODO: Convert everything to numerical calculation for speedup
+%TODO: Parallelize Code
 
 xval = double(starting_point); %tracking variable
 tval = t0;
 
 for counter = 1:n
     
-xval = double(xval + p(xval,tval)*dt); % Predicted Value
-xval = xval - h(xval,tval).*j(xval,tval);% Corrected Value
+    xval_temp = xval;
+    tval_temp = tval;
+    xval = double(xval + p(xval,tval)*dt); % Predicted Value
+    xval = xval - j(xval,tval)*h(xval,tval);% Corrected Value
+    tval = tval+ dt;   
 
-tval = t0 + dt;
-counter = counter + 1;
-
-if mod(counter,200)==0
-    fprintf('Iteration %d\n',counter)
+    if mod(counter,200) == 0
+        fprintf('Iteration %d\n',counter)
+        half_dt = dt/2;
+        for counterr = 1:2 %Double half step
+            xval_temp = double(xval + p(xval_temp,tval)*half_dt); % Predicted Value
+            xval_temp = xval_temp - j(xval_temp,tval)*h(xval_temp,tval);% Corrected Value
+            tval_temp = tval+ half_dt;
+        end          
+        if abs(xval-xval_temp)/xval > h_t %Comparison
+            dt = half_dt;
+            fprintf('Timestep halved to %f\n',dt);
+            xval = xval_temp;
+        end   
+    end
 end
 
-end
+%% Results
+
 tracked_solutions = length(xval);
-
 fprintf('Tracked %d solutions:\n',tracked_solutions);
 
 for counter = 1:tracked_solutions
