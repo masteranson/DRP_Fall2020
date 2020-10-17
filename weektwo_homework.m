@@ -1,8 +1,10 @@
 %% Initial Variables
 t0 = 0; %Initial time
-n = 199; %steps
-dt  = 1/n; %Timestep
-h_t = 0.001; %timestep half criterion
+n = 500; %steps
+dt = 1/n; %Starting Timestep
+h_t = 0.001; %timestep half criterion upper bound
+s_t = 1e-7;
+
 
 %% Target System Setup
 syms f1(x,y) f2(x,y) f(x,y) 
@@ -49,53 +51,72 @@ h(x,y,z,t) =  gamma*fs(x,y,z)*(1-t) + f(x,y,z)*t; %Homotopy
 
 dht = jacobian(h,t);
 jac = jacobian(h,[x,y,z]);
-
 p(x,y,z,t) = jac^(-1)*dht; %Predictor
 j = jac^(-1)*h; %Newton's Corrector f(x)/f'(x)
 
+%Convert to numerical solutions
+p  = matlabFunction(p);
+j = matlabFunction(j);
+
 %% Predictor Corrector Loop
 %TODO: Convert everything to numerical calculation for speedup
-%TODO: Parallelize Code
 
-xval = double(starting_solutions); %tracking variable
+xval = double(starting_solutions); %tracking variable vector [n,1]
 tval = t0;
 
-for counter = 1:n
-    
-    xval_temp = xval;
-    tval_temp = tval;
+tracking_values = zeros(length(starting_solutions),n); % For plotting
+time = zeros(1,n); % For plotting
+
+xval = double(xval); %Numerical speedup
+counter = 1;
+
+while tval < 1
+
     xval = double(xval + p(xval(1),xval(2),xval(3),tval)*dt); % Predicted Value
     xval = xval - j(xval(1),xval(2),xval(3),tval+dt);% Corrected Value
-    tval = tval+ dt;   
 
-    %TODO: Visualization R^3 [Re,Ir, T]
-    fprintf('Solution step %d: %f %f %f\n', counter, xval(1), xval(2),xval(3));
-    fprintf('Residual: %f\n',norm(h(xval(1),xval(2),xval(3),tval)));
+    tval = tval + dt;   
+    tracking_values(:,counter) = xval(:);
+    time(counter) = tval;
 
     %Adaptive step size
-    %TODO: Implement step size bigger criterion
     if mod(counter,200) == 0
         fprintf('Iteration %d\n',counter)
-        half_dt = dt/2;
-        for counterr = 1:2 %Double half step
-            xval_temp = double(xval + p(xval_temp,tval)*half_dt); % Predicted Value
-            xval_temp = xval_temp - j(xval_temp,tval)*h(xval_temp,tval);% Corrected Value
-            tval_temp = tval+ half_dt;
-        end          
-        if norm(xval-xval_temp)/norm(xval) > h_t %Comparison
-            dt = half_dt;
-            fprintf('Timestep halved to %f\n',dt);
-            xval = xval_temp;
-        end   
+        dt = adaptive_stepsize_check(j,p,xval,tval,dt,h_t,s_t);
+        fprintf('Residual: %f\n',norm(h(xval(1),xval(2),xval(3),tval)));
     end
+    counter = counter + 1;
 end
 
-%% Results
-%TODO: Fix it
-% 
-% tracked_solutions = length(xval);
-% fprintf('Tracked %d solutions:\n',tracked_solutions);
-% 
-% for counter = 1:tracked_solutions
-%     fprintf('Solution %d: %f%+fi\n', counter, [real(xval(counter)), imag(xval(counter))]);
-% end
+
+%% Result Visualization
+
+figure(1)
+title('Homotopy Tracking Path');
+xlabel('\Re');
+ylabel('\Im');
+zlabel('T');
+hold on
+
+max_val = max(max(real(tracking_values)));
+[x, y] = meshgrid(-max_val*2:1:max_val*2);
+z = zeros(length(x),length(y));
+surf(x,y,z);
+z = ones(length(x),length(y));
+surf(x,y,z);
+
+for counter = 1:3
+plot3(real(tracking_values(counter,:)),imag(tracking_values(counter,:)),time,'LineWidth',2);
+end
+view(3)
+
+tracked_solutions = length(xval(1));
+fprintf('Tracked %d solutions\n',tracked_solutions);
+
+ for counter = 1:tracked_solutions
+     fprintf('Solution %d: ', counter);
+     for counterr = 1: length(xval)
+        fprintf('%f%+fi ', [real(xval(counterr,counter)), imag(xval(counterr,counter))]);
+     end
+     fprintf('\n');
+ end
