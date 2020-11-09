@@ -1,31 +1,25 @@
 %% Saturation of Silver Chloride
 
 syms f1(x1,x3) f2(x1,x3) 
-syms f(x1,x3) r(x1,x3)
+syms f(x1,x3,z) r(x1,x3,z)
 syms fz(x1,x3,z) fs(x1,x3,z)
 syms z %homogenizing variable
 
-%Cofficients
-a1 = 1.069e4;
-a2 = 2e14;
-a3 = 1.0;
-a4 = -1.8e10;
-a5 = -1.283e24;
-b1 = 2e16;
-b2 = 1e14;
-b3 = -1;
+syms a1 a2 a3 a4 a5 b1 b2 b3
+coefficients = [a1, a2, a3, a4, a5, b1, b2, b3];
+random_coefficients = [(rand + rand*1i), (rand + rand*1i), (rand + rand*1i),(rand + rand*1i), (rand + rand*1i),(rand + rand*1i),(rand + rand*1i),(rand + rand*1i)];
+target_coefficients = [1, 1, 1, 1, 1, 1, 1, 1];
 
 %% System and homogenization
-%TODO: Fix
 
 f1(x1,x3) = a1*x1^4 + a2*x1^3*x3 + a3*x1^3 + a4*x1 +a5; 
 f2(x1,x3) = b1*x1*x3^2 + b2*x3^2 + b3; 
-f(x1,x3)  = [f1; f2]; %Target System
-
+f_t  = [f1; f2]; %Target System
+f = subs(f_t, coefficients, random_coefficients);
 
 degree  = polynomialDegree(f);
 fz(x1,x3,z) = f(x1/z, x3/z);
-fz = [z^degree(1); z^degree(2)].* fz;
+fz = [z^degree(1); z^degree(2)].* fz; %Homogenized system
 
 %% Homogenized Total Degree Starting System
 
