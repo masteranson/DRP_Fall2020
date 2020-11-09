@@ -1,4 +1,4 @@
-function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t)
+function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t, jac_eval,h)
 
     tracking_values = zeros(length(starting_solutions),length(starting_solutions(1,:)),n); % For plotting
     %(solutions, variables, h)
@@ -10,27 +10,31 @@ function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, s
     while tval < 1
         
         %xval = rk45(p,xval,tval,dt,bezuit_bound);
-        temp_p = predictor(xval(:,1),xval(:,2),xval(:,3),tval + dt*dt);
+        temp_p = predictor(xval(:,1),xval(:,2),xval(:,3),tval + dt);
         temp_p = reshape(temp_p,bezuit_bound,3);
         xval = xval + temp_p ; % Euler Predicted Value
-
+        
+        %fprintf('Before Corrector %d %d %d\n',xval(1,1),xval(1,2),xval(1,3));
+        
         temp = corrector(xval(:,1),xval(:,2),xval(:,3),tval+dt);
         temp = reshape(temp,bezuit_bound,3);
         xval_c = xval - temp ;% Corrected Value
 
         corrector_counter = 1;
         
-        while corrector_counter <= 3
-            check = (abs(norm(xval)-norm(xval_c)) >= correction_criterion);
+        while corrector_counter < 3
+            check = (norm(h(xval_c(1),xval_c(2),xval_c(3),tval + dt)) >= correction_criterion);
             if check 
-                xval_c = xval;
-                temp = corrector(xval(:,1),xval(:,2),xval(:,3),tval+dt);
+                %xval_c = xval;
+                temp = corrector(xval_c(:,1),xval_c(:,2),xval_c(:,3),tval + dt);
                 temp = reshape(temp,bezuit_bound,3);
-                xval = xval - temp;
+                xval_c = xval_c - temp;
                 corrector_counter = corrector_counter + 1;
-            elseif ~check && corrector_counter == 1
+            elseif ~check && corrector_counter < 3 
                 xval = xval_c;
-                corrector_counter = 69;
+            else
+                dt = dt/2;
+                corrector_counter = counter+counter + 1;
             end
         end 
 
@@ -42,12 +46,17 @@ function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, s
          time(counter) = tval;
 
     %    Adaptive step size
-        if mod(counter,20) == 0
+        if mod(counter,1) == 0
+            %condition_number =  cond(jac_eval(xval(1,1),xval(1,2),xval(1,3),tval));
+            %fprintf('Condition Number  %d\n', condition_number);
+            %fprintf('After Corrector %d %d %d\n',xval(1,1),xval(1,2),xval(1,3));
             fprintf('Iteration %d\n',counter)
             %dt = adaptive_stepsize_check(j,p,xval,tval,dt,h_t,s_t);
-            %fprintf('Residual: %f\n',norm(h(xval(1),xval(2),xval(3),tval)));
+            fprintf('Residual: %f\n',norm(h(xval(1),xval(2),xval(3),tval + dt)));
+            dt
         end
         counter = counter + 1;
+        
     end
 
 end
