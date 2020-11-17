@@ -1,16 +1,19 @@
 %% Initial Variables
-n = 5000; %steps
-dt = 1/n; %Starting Timestep
+n = 5; %steps
 h_t = 0.001; %timestep half criterion upper bound
 s_t = 1e-7;
 max_correction = 2;
-correction_criterion = 0.0001;
+correction_criterion = 1e-6;
 chemsys %Load config file
 
+%% check residuals
+
+
 %% Linear Homotopy
-[predictor, corrector,jac_eval,h] = homotopy_generator(fs, f, r, [x1,x3,z]);
-fprintf('Residual: %f\n',norm(h(starting_solutions(1),starting_solutions(2),starting_solutions(3),0)));
-[xval,tracking_values,time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac_eval,h);
+[predictor, corrector,jac,h] = homotopy_generator(fs, f, r, [x1,x3,z], t);
+hval=h(starting_solutions(:,1),starting_solutions(:,2),starting_solutions(:,3),0);
+fprintf('Residual: %f\n',norm(hval));
+[xval,tracking_values,time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac,h);
 
 %% Parameter Homotopy
 [predictor,corrector] = parameter_homotopy(f_t,  coefficients, random_coefficients, target_coefficients,[x1,x3,z],r); 

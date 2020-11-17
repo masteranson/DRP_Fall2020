@@ -1,5 +1,4 @@
-function [predictor, corrector,jac,h] = homotopy_generator(starting,target,patch, variables)
-syms t %time
+function [predictor, corrector,jac,h] = homotopy_generator(starting,target,patch, variables, t)
 %variables = [variables, t];
 %syms  h(variables) p(variables)
 
@@ -18,6 +17,7 @@ j = jac^(-1)*h; %Newton's Corrector f(x)/f'(x)
 %Convert to numerical solutions
 predictor  = matlabFunction(p);
 corrector = matlabFunction(j);
-jac_eval = matlabFunction(jac);
+jac = matlabFunction(jac);
+h = matlabFunction(h);
 
 end

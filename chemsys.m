@@ -4,6 +4,7 @@ syms f1(x1,x3) f2(x1,x3)
 syms f(x1,x3,z) r(x1,x3,z)
 syms fz(x1,x3,z) fs(x1,x3,z)
 syms z %homogenizing variable
+syms t %time
 
 syms a1 a2 a3 a4 a5 b1 b2 b3
 coefficients = [a1, a2, a3, a4, a5, b1, b2, b3];
@@ -40,9 +41,10 @@ z_starting_solutions = ones(bezuit_bound,1);
 x1_starting_solutions = roots([1 zeros(1,degree(1) - 1) -1]);
 x3_starting_solutions = roots([1 zeros(1,degree(2) - 1) -1]);
 [x1_starting_solutions,x3_starting_solutions] = ndgrid(x1_starting_solutions, x3_starting_solutions);
-x1_starting_solutions(:) = x1_starting_solutions(:) .* 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
-x3_starting_solutions(:) = x3_starting_solutions(:) * 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
-z_starting_solutions = z_starting_solutions * 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
+%x1_starting_solutions(:) = x1_starting_solutions(:) .* 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
+%x3_starting_solutions(:) = x3_starting_solutions(:) * 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
+%z_starting_solutions = z_starting_solutions * 1./(a*x1_starting_solutions(:) + b*x3_starting_solutions(:) + c*1);
 
 starting_solutions =[x1_starting_solutions(:), x3_starting_solutions(:), z_starting_solutions];
 starting_solutions = double(starting_solutions);
+starting_solutions = starting_solutions ./ (starting_solutions * [a; b; c]);
