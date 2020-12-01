@@ -13,17 +13,16 @@ fprintf('Residual: %f\n',norm(hval));
 [xval,tracking_values,time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac,h);
 
 %% Parameter Homotopy
-[predictor,corrector,jac,h] = parameter_homotopy(f_t,  coefficients, random_coefficients, target_coefficients,[x1,x3,z],r); 
-[p_xval,p_tracking_values, p_time] = linear_homotopy(predictor, corrector, xval, n, length(xval), correction_criterion, h_t, jac, h);
-
+%[predictor,corrector,jac,h] = parameter_homotopy(f_t,  coefficients, random_coefficients, target_coefficients,[x1,x3,z],r); 
+%[p_xval,p_tracking_values, p_time] = linear_homotopy(predictor, corrector, xval, n, bezuit_bound, correction_criterion, h_t, jac, h);
 %% Result Visualization
 
 tracked_solutions = length(xval);
 fprintf('Tracked %d solutions\n',tracked_solutions);
-figure
+
  for counter = 1:tracked_solutions
      
-    subplot(3,3,counter)
+    figure(tracked_solutions)
     title(sprintf('Homotopy Tracking Path Number %d',counter));
     xlabel('\Re');
     ylabel('\Im');
