@@ -1,6 +1,6 @@
 function [xval,num_solutions, tracking_values] = endgame(jac_eval,  xval,  tval, tracking_values)
 
-condition_threshold = 10^6;
+condition_threshold = 10^5;
 num_solutions = length(xval);
 xval_new = xval;
 tracking_values_new = tracking_values;

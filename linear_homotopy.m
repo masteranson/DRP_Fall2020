@@ -1,4 +1,4 @@
-function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t, jac_eval,h)
+function [xval, tracking_values, time, tval] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t, jac_eval,h)
 
     tracking_values = zeros(length(starting_solutions),length(starting_solutions(1,:)),n); % For plotting
     %(solutions, variables, h)
@@ -10,22 +10,22 @@ function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, s
     xval = double(starting_solutions);
     successes = 0; % consecutive
     endgame_tolerance = 0.1;
-    tStepMin = 1e-6;
+    tStepMin = 1e-8;
     num_solutions = bezuit_bound;
     %convergence_range = 1e-10;
-    checked = 1;
+    endgameReached = 0;
     
     while (tval < 1.0 && dt >= tStepMin)
         
         tvalNew = tval + dt;
         if (tvalNew >= 1)
-            %print("hi");
             tvalNew = 1.0;
         end
         if (tvalNew > 1 - endgame_tolerance)
-            %fprintf('Endgame reached at time: %f\n',tval);
+            endgameReached = 1;
+            fprintf('Endgame reached at time: %f\n',tval);
             %error("stop here")
-            [xval,num_solutions,tracking_values] = endgame(jac_eval,  xval,  tvalNew,tracking_values);
+            [xval,num_solutions,tracking_values] = endgame(jac_eval,  xval,  tvalNew, tracking_values);
         end
                
         %fprintf('at time: %f\n',tval);
@@ -81,7 +81,7 @@ function [xval, tracking_values, time] = linear_homotopy(predictor, corrector, s
          tracking_values(:,:,counter) = xval;
          time(counter) = tval;
          
-        if mod(counter,10) == 0
+        if (mod(counter,10) == 0)
             %condition_number =  cond(jac_eval(xval(1,1),xval(1,2),xval(1,3),tval));
             %fprintf('Condition Number  %d\n', condition_number);
             %fprintf('After Corrector %d %d %d\n',xval(1,1),xval(1,2),xval(1,3));

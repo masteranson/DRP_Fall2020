@@ -10,9 +10,20 @@ chemsys %Load config file
 [predictor, corrector,jac,h] = homotopy_generator(fs, f, r, [x1,x3,z], t);
 hval=h(starting_solutions(:,1),starting_solutions(:,2),starting_solutions(:,3),0);
 fprintf('Residual: %f\n',norm(hval));
-[xval,tracking_values,time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac,h);
+[xval,tracking_values,time,tval] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac,h);
 
-dehomogenized = xval(:,1:2) ./ xval(:,3)
+
+% possible trunctation criteria: does residual change if we replace t -<
+% t+dt?
+sizexval = size(xval)
+k=sizexval(1)
+for i=1:k
+  [norm(h(xval(i,1),xval(i,2),xval(i,3),tval)), norm(h(xval(i,1),xval(i,2),xval(i,3),1.0))]
+end
+
+
+
+
 
 %% Parameter Homotopy
 [predictor,corrector,jac,h] = parameter_homotopy(f_t,  coefficients, random_coefficients, target_coefficients,[x1,x3,z],r); 
