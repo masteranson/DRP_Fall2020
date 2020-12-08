@@ -2,8 +2,8 @@
 n = 5; %steps
 h_t = 0.001; %timestep half criterion upper bound
 s_t = 1e-7;
-max_correction = 2;
-correction_criterion = 1e-6;
+max_correction = 3;
+correction_criterion = 1e-10;
 chemsys %Load config file
 
 %% Linear Homotopy
@@ -11,6 +11,8 @@ chemsys %Load config file
 hval=h(starting_solutions(:,1),starting_solutions(:,2),starting_solutions(:,3),0);
 fprintf('Residual: %f\n',norm(hval));
 [xval,tracking_values,time] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t,jac,h);
+
+dehomogenized = xval(:,1:2) ./ xval(:,3)
 
 %% Parameter Homotopy
 [predictor,corrector,jac,h] = parameter_homotopy(f_t,  coefficients, random_coefficients, target_coefficients,[x1,x3,z],r); 
