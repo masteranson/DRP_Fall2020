@@ -1,35 +1,46 @@
 function [xval, tracking_values, time, tval] = linear_homotopy(predictor, corrector, starting_solutions, n, bezuit_bound, correction_criterion, h_t, jac_eval,h)
 
-    tracking_values = zeros(length(starting_solutions),length(starting_solutions(1,:)),n); % For plotting
-    %(solutions, variables, h)
+    tracking_values = zeros(length(starting_solutions),length(starting_solutions(1,:)),n); % For plotting (solutions, variables, h)
     %dt = 1/n;
     dt = 1e-2;
+    
     time = zeros(1,n); % For plotting
     counter = 1;
     tval = 0;
     xval = double(starting_solutions);
     successes = 0; % consecutive
-    endgame_tolerance = 0.1;
+    endgame_tolerance_1 = 0.1; %Initial Endgame
+    endgame_tolerance_2 = 0.0001; %Final Endgame procedure
     tStepMin = 1e-8;
+    
     num_solutions = bezuit_bound;
     %convergence_range = 1e-10;
-    endgameReached = 0;
+    
+    endgameReached_1 = 0;
+    endgameReached_2 = 0;
     
     while (tval < 1.0 && dt >= tStepMin)
         
         tvalNew = tval + dt;
+        
         if (tvalNew >= 1)
             tvalNew = 1.0;
         end
-        if (tvalNew > 1 - endgame_tolerance)
-            endgameReached = 1;
-            fprintf('Endgame reached at time: %f\n',tval);
+        
+        if (tvalNew > 1 - endgame_tolerance_1)
+            endgameReached_1 = 1;
+            fprintf('Initial endgame activated at time: %f\n',tval);
             %error("stop here")
             [xval,num_solutions,tracking_values] = endgame(jac_eval,  xval,  tvalNew, tracking_values);
         end
-               
-        %fprintf('at time: %f\n',tval);
         
+        if (tvalNew > 1 - endgame_tolerance_2) && ~endgameReached_2
+            endgameReached_2 = 1;
+            fprintf('Final endgame reached at time: %f\n',tval);
+            %error("stop here")
+            [xval,num_solutions,tracking_values] = endgame_final(h,  xval,  tvalNew, tracking_values);
+        end
+               
         %xval = rk45(p,xval,tval,dt,bezuit_bound);
         
         temp_p = predictor(xval(:,1),xval(:,2),xval(:,3),tvalNew);

@@ -10,7 +10,7 @@ syms a1 a2 a3 a4 a5 b1 b2 b3
 coefficients = [a1, a2, a3, a4, a5, b1, b2, b3];
 random_coefficients = [(rand + rand*1i), (rand + rand*1i), (rand + rand*1i),(rand + rand*1i), (rand + rand*1i),(rand + rand*1i),(rand + rand*1i),(rand + rand*1i)];
 %target_coefficients =  [(rand + rand*1i), (rand + rand*1i), (rand + rand*1i),(rand + rand*1i), (rand + rand*1i),(rand + rand*1i),(rand + rand*1i),(rand + rand*1i)]; % [1, 1, 1, 1, 1, 1, 1, 1];
-target_coefficients = [1.069e4 2e4 1 -1.8e10 -1.283e24 2e16 1e14 -1];
+target_coefficients = [1 1 1 1 1 1
 %% System and homogenization
 
 f1(x1,x3) = a1*x1^4 + a2*x1^3*x3 + a3*x1^3 + a4*x1 +a5; 
