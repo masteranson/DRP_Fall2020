@@ -1,9 +1,0 @@
-#using HomotopyContinuation
-using Plots
-
-@var x y z
-
-#f₁ = x^3 - y^2
-f(x,y,z) = x^3 - y^2*z
-plot3d(f; xlims=(-5,5), ylims=(-5,5),zlims=(-5,5))
-]
